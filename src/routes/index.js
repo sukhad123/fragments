@@ -3,6 +3,7 @@
 const express = require('express');
 //const app = require('../app');
 const { authenticate } = require('../auth');
+const { author, version } = require('../../package.json');
 // version and author from package.json
 
 // version and author from package.json
@@ -24,6 +25,8 @@ router.get('/', (req, res) => {
   // Send a 200 'OK' response
   res.status(200).json({
     status: 'ok',
+    author: author,
+    version: version,
 
     // Use your own GitHub URL for this!
     githubUrl: 'https://github.com/sukhad123/fragments',

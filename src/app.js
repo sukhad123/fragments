@@ -12,7 +12,6 @@ app.use(passport.initialize());
 
 // author and version from our package.json file
 // TODO: make sure you have updated your name in the `author` section
- 
 
 const logger = require('./logger');
 const pino = require('pino-http')({
@@ -67,6 +66,17 @@ app.use((err, req, res, next) => {
     error: {
       message,
       code: status,
+    },
+  });
+});
+// Add 404 middleware to handle any requests for resources that can't be found can't be found
+app.use((req, res) => {
+  // Pass along an error object to the error-handling middleware
+  res.status(404).json({
+    status: 'error',
+    error: {
+      message: 'not found',
+      code: 404,
     },
   });
 });
