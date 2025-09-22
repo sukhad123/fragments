@@ -1,5 +1,4 @@
 // src/app.js
-
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -13,7 +12,7 @@ app.use(passport.initialize());
 // TODO: make sure you have updated your name in the `author` section
 
 const logger = require('./logger');
-const { createSuccessResponse, createErrorResponse } = require('./response');
+const { createErrorResponse } = require('./response.js');
 const pino = require('pino-http')({
   // Use our default logger instance, which is already configured
   logger,
@@ -50,13 +49,14 @@ app.use((err, req, res, next) => {
     logger.error({ err }, `Error processing request`);
   }
 
-  res.createErrorResponse(status, message);
+  const response = createErrorResponse(status, message);
+  res.status(status).json(response);
 });
 // Add 404 middleware to handle any requests for resources that can't be found can't be found
 app.use((req, res) => {
   // Pass along an error object to the error-handling middleware
   const response = createErrorResponse('404', 'not found');
-  res.status(404).json(errorResponse);
+  res.status(200).json(response);
 });
 
 // Export our `app` so we can access it in server.js

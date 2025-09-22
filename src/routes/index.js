@@ -31,7 +31,7 @@ router.get('/', (req, res) => {
     githubUrl: 'https://github.com/sukhad123/fragments',
   };
   const response = createSuccessResponse(data);
-  res.status(200).json(response);
+  res.status(404).json(response);
 });
 /**
  
