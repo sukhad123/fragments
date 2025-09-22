@@ -9,11 +9,11 @@ const authenticate = require('./auth');
 const app = express();
 passport.use(authenticate.strategy());
 app.use(passport.initialize());
-
 // author and version from our package.json file
 // TODO: make sure you have updated your name in the `author` section
 
 const logger = require('./logger');
+const { createSuccessResponse, createErrorResponse } = require('./response');
 const pino = require('pino-http')({
   // Use our default logger instance, which is already configured
   logger,
@@ -37,17 +37,6 @@ app.use(compression());
 // we'll respond with a 200 OK.  If not, the server isn't healthy.
 app.use('/', require('./routes'));
 
-// Add 404 middleware to handle any requests for resources that can't be found
-app.use((req, res) => {
-  res.status(404).json({
-    status: 'error',
-    error: {
-      message: 'not found',
-      code: 404,
-    },
-  });
-});
-
 // Add error-handling middleware to deal with anything else
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
@@ -61,24 +50,13 @@ app.use((err, req, res, next) => {
     logger.error({ err }, `Error processing request`);
   }
 
-  res.status(status).json({
-    status: 'error',
-    error: {
-      message,
-      code: status,
-    },
-  });
+  res.createErrorResponse(status, message);
 });
 // Add 404 middleware to handle any requests for resources that can't be found can't be found
 app.use((req, res) => {
   // Pass along an error object to the error-handling middleware
-  res.status(404).json({
-    status: 'error',
-    error: {
-      message: 'not found',
-      code: 404,
-    },
-  });
+  const response = createErrorResponse('404', 'not found');
+  res.status(404).json(errorResponse);
 });
 
 // Export our `app` so we can access it in server.js

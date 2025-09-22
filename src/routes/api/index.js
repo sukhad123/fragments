@@ -1,7 +1,6 @@
 // src/routes/index.js
-
+const { createSuccessResponse, createErrorResponse } = require('../../response.js');
 const express = require('express');
-
 // version and author from package.json
 const { version, author } = require('../../../package.json');
 
@@ -21,13 +20,16 @@ router.get('/', (req, res) => {
   // Client's shouldn't cache this response (always request it fresh)
   res.setHeader('Cache-Control', 'no-cache');
   // Send a 200 'OK' response
-  res.status(200).json({
+  const data = {
     status: 'ok',
-    author,
+    author: author,
+    version: version,
     // Use your own GitHub URL for this!
     githubUrl: 'https://github.com/sukhad123/fragments',
-    version,
-  });
+  };
+  const response = createSuccessResponse(data);
+
+  res.status(200).json(response);
 });
 // src/routes/api/index.js
 
