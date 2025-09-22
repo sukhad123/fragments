@@ -56,7 +56,7 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   // Pass along an error object to the error-handling middleware
   const response = createErrorResponse('404', 'not found');
-  res.status(200).json(response);
+  res.status(404).json(response);
 });
 
 // Export our `app` so we can access it in server.js
