@@ -46,18 +46,21 @@ router.post('/', rawBody(), async (req, res) => {
     const location = `${baseUrl}/v1/fragments/${fragment.id}`;
 
     // Step 6: Respond success
-    return res.set('Location', location).json(
-      createSuccessResponse({
-        fragment: {
-          id: fragment.id,
-          ownerId: fragment.ownerId,
-          created: fragment.created,
-          updated: fragment.updated,
-          type: fragment.type,
-          size: fragment.size,
-        },
-      })
-    );
+    return res
+      .set('Location', location)
+      .status(200)
+      .json(
+        createSuccessResponse({
+          fragment: {
+            id: fragment.id,
+            ownerId: fragment.ownerId,
+            created: fragment.created,
+            updated: fragment.updated,
+            type: fragment.type,
+            size: fragment.size,
+          },
+        })
+      );
 
     //return res.status(22).json({ message: { type } });
   } catch (error) {

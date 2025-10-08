@@ -49,4 +49,20 @@ describe('GET /v1/fragments/:id', () => {
       .auth(validUser.email, validUser.password);
     expect(res.statusCode).toBe(500);
   });
+  test('returns 200 and fragment data when found', async () => {
+    const mockFragment = {
+      getData: jest.fn().mockResolvedValue(Buffer.from('Hello world')),
+    };
+
+    Fragment.byId.mockResolvedValue(mockFragment);
+
+    const res = await request(app)
+      .get('/v1/fragments/12345')
+      .auth(validUser.email, validUser.password);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.fragment).toBe('Hello world');
+    expect(Fragment.byId).toHaveBeenCalledWith(expect.any(String), '12345');
+  });
 });

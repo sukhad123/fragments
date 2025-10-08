@@ -45,7 +45,6 @@ describe('GET /v1/fragments', () => {
     expect(res.body.Fragments).toEqual([]);
   });
 
-  // Ensure correct JSON structure in success response
   test('response format is valid JSON', async () => {
     Fragment.byUser.mockResolvedValueOnce([{ id: 'a', type: 'text/plain', size: 10 }]);
 
@@ -54,5 +53,38 @@ describe('GET /v1/fragments', () => {
     expect(res.headers['content-type']).toMatch(/json/);
     expect(res.body).toHaveProperty('status', 'ok');
     expect(res.body).toHaveProperty('Fragments');
+  });
+  test('returns multiple fragments in the array', async () => {
+    Fragment.byUser.mockResolvedValueOnce([
+      { id: '1', type: 'text/plain', size: 5 },
+      { id: '2', type: 'text/markdown', size: 10 },
+    ]);
+
+    const res = await request(app).get('/v1/fragments').auth('user1@email.com', 'password1');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(Array.isArray(res.body.Fragments)).toBe(true);
+    expect(res.body.Fragments.length).toBe(2);
+    expect(res.body.Fragments[1]).toMatchObject({ id: '2', type: 'text/markdown' });
+  });
+  test('ignores unknown query params and still returns fragments', async () => {
+    Fragment.byUser.mockResolvedValueOnce([{ id: '3', type: 'text/html', size: 8 }]);
+
+    const res = await request(app)
+      .get('/v1/fragments?foo=bar')
+      .auth('user1@email.com', 'password1');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.Fragments.length).toBe(1);
+  });
+  test('returns 500 if Fragment.byUser throws an error', async () => {
+    Fragment.byUser.mockRejectedValueOnce(new Error('DB failure'));
+
+    const res = await request(app).get('/v1/fragments').auth('user1@email.com', 'password1');
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.status).toBe('error');
   });
 });

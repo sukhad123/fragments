@@ -101,4 +101,34 @@ describe('POST /v1/fragments', () => {
 
     expect([200, 413]).toContain(res.statusCode);
   });
+  test('missing Content-Type returns 400 or 415', async () => {
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .send('hello');
+
+    expect([400, 415]).toContain(res.statusCode);
+  });
+
+  test('returns 500 if Fragment.save() fails', async () => {
+    const mockFragment = {
+      id: 'mock-id',
+      ownerId: 'user1@email.com',
+      type: 'text/plain',
+      size: 11,
+      save: jest.fn().mockRejectedValue(new Error('Save failed')),
+      setData: jest.fn().mockResolvedValue(),
+    };
+    Fragment.mockImplementationOnce(() => mockFragment);
+    Fragment.isSupportedType.mockReturnValueOnce(true);
+
+    const res = await request(app)
+      .post('/v1/fragments')
+      .auth('user1@email.com', 'password1')
+      .set('Content-Type', 'text/plain')
+      .send('hello');
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.status).toBe('error');
+  });
 });
