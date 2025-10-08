@@ -9,7 +9,7 @@ router.get('/:id', async (req, res) => {
     const id = req.params.id;
     const fragment = await Fragment.byId(req.user, id);
     if (!fragment) {
-      const errorResponse = createErrorResponse(error + 'Fragment Not Found');
+      const errorResponse = createErrorResponse('Fragment Not Found');
       res.status(404).json(errorResponse);
     }
 
@@ -21,7 +21,7 @@ router.get('/:id', async (req, res) => {
     return res.status(200).json(response);
   } catch (error) {
     //Handle any server error
-    const response = createErrorResponse('Internal Server Error');
+    const response = createErrorResponse(error + 'Internal Server Error');
     //return the response
     return res.status(500).json(response);
   }
