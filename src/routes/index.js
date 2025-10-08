@@ -2,10 +2,11 @@
 
 const express = require('express');
 //const app = require('../app');
-const { authenticate } = require('../auth');
+const authenticate = require('../auth/auth-middleware.js');
 const { author, version } = require('../../package.json');
 // version and author from package.json
 const { createSuccessResponse } = require('../response.js');
+
 // version and author from package.json
 
 // Create a router that we can use to mount our API
@@ -15,9 +16,10 @@ const router = express.Router();
  * Expose all of our API routes on /v1/* to include an API version.
  */
 // Define our first route, which will be: GET /v1/fragments
-router.use(`/v1/fragments`, authenticate(), require('./api/get'));
-// Other routes (POST, DELETE, etc.) will go here later on...
-
+router.use(`/v1/fragments`, authenticate('http'), require('./api/get'));
+router.use('/v1/fragments', authenticate('http'), require('./api/post'));
+//unique id route
+router.use('/v1/fragments', authenticate('http'), require('./api/individualFragment.js'));
 // Create a router that we can use to mount our API
 router.get('/', (req, res) => {
   // Client's shouldn't cache this response (always request it fresh)

@@ -1,8 +1,14 @@
 // tests/unit/get.test.js
 
 const request = require('supertest');
-
 const app = require('../../app.js');
+const { Fragment } = require('../../model/fragments');
+
+jest.mock('../../model/fragments', () => ({
+  Fragment: {
+    byUser: jest.fn(),
+  },
+}));
 
 describe('GET /v1/fragments', () => {
   // If the request is missing the Authorization header, it should be forbidden
@@ -14,11 +20,39 @@ describe('GET /v1/fragments', () => {
 
   // Using a valid username/password pair should give a success result with a .fragments array
   test('authenticated users get a fragments array', async () => {
+    Fragment.byUser.mockResolvedValueOnce([{ id: '1', type: 'text/plain', size: 5 }]);
+
     const res = await request(app).get('/v1/fragments').auth('user1@email.com', 'password1');
+
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe('ok');
-    expect(Array.isArray(res.body.fragments)).toBe(true);
+    expect(Array.isArray(res.body.Fragments)).toBe(true);
+    expect(res.body.Fragments.length).toBeGreaterThanOrEqual(1);
+    expect(res.body.Fragments[0]).toMatchObject({
+      id: '1',
+      type: 'text/plain',
+    });
   });
 
-  // TODO: we'll need to add tests to check the contents of the fragments array later
+  // Check if empty fragments array is handled correctly
+  test('authenticated user with no fragments gets an empty array', async () => {
+    Fragment.byUser.mockResolvedValueOnce([]);
+
+    const res = await request(app).get('/v1/fragments').auth('user1@email.com', 'password1');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.Fragments).toEqual([]);
+  });
+
+  // Ensure correct JSON structure in success response
+  test('response format is valid JSON', async () => {
+    Fragment.byUser.mockResolvedValueOnce([{ id: 'a', type: 'text/plain', size: 10 }]);
+
+    const res = await request(app).get('/v1/fragments').auth('user1@email.com', 'password1');
+
+    expect(res.headers['content-type']).toMatch(/json/);
+    expect(res.body).toHaveProperty('status', 'ok');
+    expect(res.body).toHaveProperty('Fragments');
+  });
 });
