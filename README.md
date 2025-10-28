@@ -1,5 +1,4 @@
 # Project Documentation
-
 ## 📦 Prerequisites
 
 - **Node.js** ≥ 18
