@@ -1,6 +1,5 @@
 # Project Documentation
 ## 📦 Prerequisites
-
 - **Node.js** ≥ 18
 - Install dependencies:
   ````bash
