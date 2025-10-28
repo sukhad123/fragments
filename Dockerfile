@@ -1,44 +1,40 @@
-# Use node version 22.12.0
-FROM node:22.12.0
-# Metadata
-LABEL maintainer="Sukhad Adhikari sukhadadhikari3@gmail.com"
-LABEL description="Fragments node.js microservice"
-# We default to use port 8080 in our service
-ENV PORT=8080
-# Reduce npm spam when installing within Docker
-# https://docs.npmjs.com/cli/v8/using-npm/config#loglevel
-ENV NPM_CONFIG_LOGLEVEL=warn
-# Disable colour when run inside Docker
-# https://docs.npmjs.com/cli/v8/using-npm/config#color
-ENV NPM_CONFIG_COLOR=false
-# Use /app as our working directory
+
+# Stage 1: Build dependencies
+FROM node:22.12.0 AS builder
+
+LABEL maintainer="Sukhad Adhikari <sukhadadhikari3@gmail.com>"
+LABEL description="Fragments Node.js microservice - optimized build"
+
+# Set environment
+ENV NODE_ENV=development
 WORKDIR /app
-# Option 1: explicit path - Copy the package.json and package-lock.json
-# files into /app. NOTE: the trailing `/` on `/app/`, which tells Docker
-# that `app` is a directory and not a file.
-COPY package*.json /app/
 
-# Option 2: relative path - Copy the package.json and package-lock.json
-# files into the working dir (/app).  NOTE: this requires that we have
-# already set our WORKDIR in a previous step.
+# Copy package files and install dependencies
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Option 3: explicit filenames - Copy the package.json and package-lock.json
-# files into the working dir (/app), using full paths and multiple source
-# files.  All of the files will be copied into the working dir `./app`
-COPY package.json package-lock.json ./
+# Copy the source code
+COPY . .
 
+# Stage 2: Runtime image
+FROM node:22.12.0-slim AS runtime
 
-# Install node dependencies defied in package-lock.json
-RUN npm install
+# Metadata
+LABEL maintainer="Sukhad Adhikari <sukhadadhikari3@gmail.com>"
+LABEL description="Fragments Node.js microservice - production runtime"
 
-# Copy src to /app/src/
-COPY ./src ./src
+# Environment
+ENV NODE_ENV=production
+ENV PORT=8080
+WORKDIR /app
 
+# Copy only necessary artifacts from builder stage
+COPY --from=builder /app /app
 
-# Start the container by running our server
-CMD npm start
+# Reduce npm logs and disable color
+ENV NPM_CONFIG_LOGLEVEL=warn
+ENV NPM_CONFIG_COLOR=false
 
-
-# We run our service on port 8080
+# Expose the port and run app
 EXPOSE 8080
+CMD ["npm", "start"]
