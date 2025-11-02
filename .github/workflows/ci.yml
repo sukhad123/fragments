@@ -74,7 +74,7 @@ jobs:
       - uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
-  docker-build-and-push:
+  docker-hub:
     name: Build and Push to Docker Hub
     runs-on: ubuntu-latest
 
