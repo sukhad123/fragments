@@ -1,0 +1,60 @@
+# Continuous Delivery Workflow
+#
+# Runs automatically whenever a new tag (like v0.5.0) is pushed.
+# It builds and pushes a Docker image to Amazon ECR.
+# Make sure your AWS credentials are added as GitHub secrets:
+#   - AWS_ACCESS_KEY_ID
+#   - AWS_SECRET_ACCESS_KEY
+#   - AWS_SESSION_TOKEN
+
+name: cd
+
+on:
+  push:
+    tags:
+      - 'v**' # Trigger only when a new tag starting with "v" is pushed (e.g. v0.5.0)
+
+jobs:
+  aws:
+    name: Deploy to AWS ECR
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 — Checkout the repository code
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Step 2 — Set up Docker Buildx (for optimized builds)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 3 — Configure AWS credentials from GitHub secrets
+      # (these expire each time your Learner Lab restarts)
+      - name: Configure AWS credentials using secrets
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      # Step 4 — Login to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Step 5 — Build and Push Docker image to ECR
+      - name: Build and push to Amazon ECR
+        env:
+          # ECR registry URL from login step
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          # Your ECR repository name
+          ECR_REPO: fragments
+          # The tag name from git (e.g. v0.5.0)
+          VERSION_TAG: ${{ github.ref_name }}
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }},
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:latest
