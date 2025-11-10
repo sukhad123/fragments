@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Fragment } = require('../../model/fragments.js');
 const { createSuccessResponse, createErrorResponse } = require('../../response');
-const logger = require('../../logger.js');
+//const logger = require('../../logger.js');
 router.get('/', async (req, res) => {
   try {
     const expand = req.query.expand;
@@ -22,6 +22,7 @@ router.get('/', async (req, res) => {
       return res.status(200).json(response);
     }
   } catch (error) {
+    console.log(error);
     //Handle any server error
     const response = createErrorResponse(500, 'Internal Server Error');
     //return the response

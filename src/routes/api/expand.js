@@ -2,6 +2,7 @@
   /**This route will return all the fragments for authenticated users */
 }
 const { Fragment } = require('../../model/fragments.js');
+const express = require('express');
 const router = express.Router();
 const { createErrorResponse, createSuccessResponse } = require('../../response');
 router.get('/v1/fragments/?expand=1', async (req, res) => {

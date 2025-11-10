@@ -5,6 +5,7 @@ const md = new MarkdownIt();
 
 const { Fragment } = require('../../model/fragments.js');
 const { createSuccessResponse, createErrorResponse } = require('../../response');
+const logger = require('../../logger.js');
 
 // GET /v1/fragments/:id
 router.get('/:id', async (req, res) => {
@@ -50,6 +51,7 @@ router.get('/:id/info', async (req, res) => {
 
     return res.status(200).json(createSuccessResponse(metadata, 'Fragment metadata retrieved'));
   } catch (err) {
+    logger.error(err);
     return res.status(500).json(createErrorResponse(500, 'Internal Server Error'));
   }
 });
@@ -77,6 +79,7 @@ router.get('/:id.:ext', async (req, res) => {
 
     return res.status(200).send(outputData);
   } catch (err) {
+    logger.error(err);
     return res.status(500).json(createErrorResponse(500, 'Internal Server Error'));
   }
 });

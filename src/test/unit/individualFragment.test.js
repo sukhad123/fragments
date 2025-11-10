@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../../app');
 const { Fragment } = require('../../model/fragments');
-const { createSuccessResponse, createErrorResponse } = require('../../response');
+const { createErrorResponse } = require('../../response');
 const MarkdownIt = require('markdown-it');
 const md = new MarkdownIt();
 
