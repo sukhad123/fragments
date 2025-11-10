@@ -5,6 +5,7 @@ const { createSuccessResponse, createErrorResponse } = require('../../response')
 //const logger = require('../../logger.js');
 router.get('/', async (req, res) => {
   //as
+  //afasdfsad
   try {
     const expand = req.query.expand;
     if (expand === '1') {
