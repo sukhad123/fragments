@@ -19,6 +19,7 @@ const router = express.Router();
 router.use(`/v1/fragments`, authenticate('bearer'), require('./api/get'));
 router.use('/v1/fragments', authenticate('bearer'), require('./api/post'));
 //unique id route
+//individual fragment route
 router.use('/v1/fragments', authenticate('bearer'), require('./api/individualFragment.js'));
 // Create a router that we can use to mount our API
 router.get('/', (req, res) => {
