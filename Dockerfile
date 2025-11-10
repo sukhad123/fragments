@@ -30,7 +30,6 @@ WORKDIR /app
 
 # Copy only necessary artifacts from builder stage
 COPY --from=builder /app /app
-COPY tests/.htpasswd tests/.htpasswd
 
 # Reduce npm logs and disable color
 ENV NPM_CONFIG_LOGLEVEL=warn
