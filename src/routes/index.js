@@ -1,4 +1,5 @@
 // src/routes/index.js
+const { hostname } = require('os');
 
 const express = require('express');
 //const app = require('../app');
@@ -32,6 +33,7 @@ router.get('/', (req, res) => {
     version: version,
     // Use your own GitHub URL for this!
     githubUrl: 'https://github.com/sukhad123/fragments',
+    hostname: hostname(),
   };
   const response = createSuccessResponse(data);
   res.status(200).json(response);
