@@ -7,7 +7,7 @@ const authenticate = require('../auth/auth-middleware.js');
 const { author, version } = require('../../package.json');
 // version and author from package.json
 const { createSuccessResponse } = require('../response.js');
-
+console.log('Author:', author);
 // Create a router that we can use to mount our API
 const router = express.Router();
 /**
