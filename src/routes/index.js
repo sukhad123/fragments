@@ -8,8 +8,6 @@ const { author, version } = require('../../package.json');
 // version and author from package.json
 const { createSuccessResponse } = require('../response.js');
 
-// version and author from package.json
-
 // Create a router that we can use to mount our API
 const router = express.Router();
 
