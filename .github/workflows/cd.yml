@@ -58,7 +58,7 @@ jobs:
           tags: |
             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }},
             ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:latest
-      #Step 6: 
+      #Step 6:
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: update-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -68,7 +68,7 @@ jobs:
           VERSION_TAG: ${{ github.ref_name }}
         with:
           task-definition: fragments-definition.json
-          container-name: fragment-container  # must match JSON container name
+          container-name: fragment-container # must match JSON container name
           image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}
           environment-variables: |
             LOG_LEVEL=debug
@@ -78,4 +78,3 @@ jobs:
             AWS_COGNITO_CLIENT_ID=${{ secrets.AWS_COGNITO_CLIENT_ID }}
             API_URL=${{ secrets.API_URL }}
             PORT=80
-
