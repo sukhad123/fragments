@@ -12,7 +12,7 @@ name: cd
 on:
   push:
     tags:
-      - 'v**' # Trigger only when a new tag starting with "v" is pushed (e.g. v0.5.0)
+      - 'v*' # Trigger only when a new tag starting with "v" is pushed (e.g. v0.5.0)
 
 jobs:
   aws:

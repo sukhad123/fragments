@@ -6,6 +6,7 @@ const { createSuccessResponse, createErrorResponse } = require('../../response')
 router.get('/', async (req, res) => {
   //as
   //afasdfsad
+  //ads
   try {
     const expand = req.query.expand;
     if (expand === '1') {
