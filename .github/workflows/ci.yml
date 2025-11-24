@@ -96,4 +96,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: adhikarisukhad/fragments:v0.9.2
+          tags: adhikarisukhad/fragments:v0.9.3
