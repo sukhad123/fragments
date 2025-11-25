@@ -12,7 +12,7 @@ const {
   writeFragmentData,
   listFragments,
   deleteFragment,
-} = require('./data/memory/index.js');
+} = require('./data/aws/index.js');
 
 //Defining a fragment
 class Fragment {
