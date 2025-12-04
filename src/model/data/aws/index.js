@@ -1,10 +1,10 @@
 const MemoryDB = require('../memory/memory-db.js');
 const s3Client = require('./s3Client');
+const ddbDocClient = require('./ddbDoclient.js');
 const logger = require('../../../logger.js');
-
-const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
-const metadata = new MemoryDB();
-
+const { PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { PutCommand, GetCommand, DeleteCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 // Writes a fragment's data to an S3 Object in a Bucket
 // https://github.com/awsdocs/aws-sdk-for-javascript-v3/blob/main/doc_source/s3-example-creating-buckets.md#upload-an-existing-object-to-an-amazon-s3-bucket
 async function writeFragmentData(ownerId, id, data) {
@@ -77,36 +77,95 @@ async function readFragmentData(ownerId, id) {
   /**read Fragment */
 }
 async function readFragment(ownerId, id) {
-  // NOTE: this data will be raw JSON, we need to turn it back into an Object.
-  // You'll need to take care of converting this back into a Fragment instance
-  // higher up in the callstack.
-  const serialized = await metadata.get(ownerId, id);
-  return typeof serialized === 'string' ? JSON.parse(serialized) : serialized;
-}
+  // Configure our GET params, with the name of the table and key (partition key + sort key)
+  const params = {
+    TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+    Key: { ownerId, id },
+  };
 
-async function writeFragment(fragment) {
-  // Simulate db/network serialization of the value, storing only JSON representation.
-  // This is important because it's how things will work later with AWS data stores.
-  const serialized = JSON.stringify(fragment);
-  return metadata.put(fragment.ownerId, fragment.id, serialized);
+  // Create a GET command to send to DynamoDB
+  const command = new GetCommand(params);
+
+  try {
+    // Wait for the data to come back from AWS
+    const data = await ddbDocClient.send(command);
+    // We may or may not get back any data (e.g., no item found for the given key).
+    // If we get back an item (fragment), we'll return it.  Otherwise we'll return `undefined`.
+    return data?.Item;
+  } catch (err) {
+    logger.warn({ err, params }, 'error reading fragment from DynamoDB');
+    throw err;
+  }
+}
+function writeFragment(fragment) {
+  // Configure our PUT params, with the name of the table and item (attributes and keys)
+  const params = {
+    TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+    Item: fragment,
+  };
+
+  // Create a PUT command to send to DynamoDB
+  const command = new PutCommand(params);
+
+  try {
+    return ddbDocClient.send(command);
+  } catch (err) {
+    logger.warn({ err, params, fragment }, 'error writing fragment to DynamoDB');
+    throw err;
+  }
 }
 
 async function deleteFragment(ownerId, id) {
+  try {
+    // Delete from DynamoDB (metadata)
+    const ddbParams = {
+      TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+      Key: { ownerId, id },
+    };
+
+    const ddbCommand = new DeleteCommand(ddbParams);
+    await ddbDocClient.send(ddbCommand);
+    logger.info({ ownerId, id }, 'Fragment metadata deleted from DynamoDB');
+  } catch (err) {
+    logger.error({ err, ownerId, id }, 'Error deleting fragment');
+    throw new Error('Unable to delete fragment');
+  }
+}
+async function listFragments(ownerId, expand = false) {
+  // Configure our QUERY params, with the name of the table and the query expression
   const params = {
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
-    // Our key will be a mix of the ownerID and fragment id, written as a path
-    Key: `${ownerId}/${id}`,
+    TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+    // Specify that we want to get all items where the ownerId is equal to the
+    // `:ownerId` that we'll define below in the ExpressionAttributeValues.
+    KeyConditionExpression: 'ownerId = :ownerId',
+    // Use the `ownerId` value to do the query
+    ExpressionAttributeValues: {
+      ':ownerId': ownerId,
+    },
   };
 
-  const command = new DeleteObjectCommand(params);
+  // Limit to only `id` if we aren't supposed to expand. Without doing this
+  // we'll get back every attribute.  The projection expression defines a list
+  // of attributes to return, see:
+  // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.ProjectionExpressions.html
+  if (!expand) {
+    params.ProjectionExpression = 'id';
+  }
+
+  // Create a QUERY command to send to DynamoDB
+  const command = new QueryCommand(params);
 
   try {
-    await s3Client.send(command);
-    logger.info({ Bucket: params.Bucket, Key: params.Key }, 'Fragment deleted from S3');
+    // Wait for the data to come back from AWS
+    const data = await ddbDocClient.send(command);
+
+    // If we haven't expanded to include all attributes, remap this array from
+    // [ {"id":"b9e7a264-630f-436d-a785-27f30233faea"}, {"id":"dad25b07-8cd6-498b-9aaf-46d358ea97fe"} ,... ] to
+    // [ "b9e7a264-630f-436d-a785-27f30233faea", "dad25b07-8cd6-498b-9aaf-46d358ea97fe", ... ]
+    return !expand ? data?.Items.map((item) => item.id) : data?.Items;
   } catch (err) {
-    const { Bucket, Key } = params;
-    logger.error({ err, Bucket, Key }, 'Error deleting fragment data from S3');
-    throw new Error('unable to delete fragment data');
+    logger.error({ err, params }, 'error getting all fragments for user from DynamoDB');
+    throw err;
   }
 }
 
@@ -116,5 +175,6 @@ module.exports = {
   writeFragmentData,
   readFragmentData,
   deleteFragment,
+  listFragments,
   // add others if needed
 };
