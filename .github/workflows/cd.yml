@@ -77,4 +77,4 @@ jobs:
             AWS_COGNITO_POOL_ID=${{ secrets.AWS_COGNITO_POOL_ID }}
             AWS_COGNITO_CLIENT_ID=${{ secrets.AWS_COGNITO_CLIENT_ID }}
             API_URL=${{ secrets.API_URL }}
-            PORT=80
+            PORT=80Y

@@ -87,10 +87,24 @@ class Fragment {
    */
   static async byId(ownerId, id) {
     if (!ownerId || !id) {
-      throw new Error('Missing owner Id or id');
+      return null;
     }
+
     const response = await readFragment(ownerId, id);
-    const parsed = typeof response === 'string' ? JSON.parse(response) : response;
+
+    if (!response) {
+      // Return null if fragment doesn't exist
+      return null;
+    }
+
+    let parsed;
+    try {
+      parsed = typeof response === 'string' ? JSON.parse(response) : response;
+    } catch (err) {
+      console.log(err);
+      throw new Error('Failed to parse fragment from DB');
+    }
+
     const fragment = new Fragment({
       id: parsed.id,
       ownerId: parsed.ownerId,
@@ -99,10 +113,8 @@ class Fragment {
       updated: parsed.updated,
       size: parsed.size,
     });
-    return Promise.resolve(fragment);
 
-    // TODO
-    // TIP: make sure you properly re-create a full Fragment instance after getting from db.
+    return fragment;
   }
 
   /**
@@ -197,7 +209,17 @@ class Fragment {
    */
   static isSupportedType(value) {
     const { type } = contentType.parse(value);
-    const supported = ['text/plain', 'text/markdown', 'text/html', 'application/json'];
+    const supported = [
+      'text/csv',
+      'text/plain',
+      'text/markdown',
+      'text/html',
+      'application/json',
+      'application/yaml',
+      'image/png',
+      'image/jpeg',
+      'image/webp',
+    ];
     return supported.includes(type);
   }
 }
