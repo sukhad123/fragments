@@ -11,16 +11,15 @@ const logger = require('../../logger.js');
 
 router.get('/update/:id.:ext', async (req, res) => {
   try {
-    logger.info('reaparams', req.params);
+    logger.info('Request params:', req.params);
     const { id, ext } = req.params;
-    logger.info(`Requested conversion of fragment ${id} to .${ext}`);
+    const lowerExt = ext.toLowerCase();
 
     if (!req.user) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    const fragment = await Fragment.byId(req.user, id); // pass ownerId as first param
-
+    const fragment = await Fragment.byId(req.user, id);
     if (!fragment) {
       return res.status(404).json({ error: 'Fragment not found' });
     }
@@ -42,12 +41,22 @@ router.get('/update/:id.:ext', async (req, res) => {
     };
 
     const originalExt = mimeMap[fragment.type] || null;
-    const lowerExt = ext.toLowerCase();
 
     // Markdown → HTML
     if (fragment.type === 'text/markdown' && lowerExt === 'html') {
       const html = md.render(data.toString());
       return res.status(200).header('Content-Type', 'text/html').send(html);
+    }
+
+    // Plain text ↔ Markdown
+    if (
+      (fragment.type === 'text/plain' && lowerExt === 'md') ||
+      (fragment.type === 'text/markdown' && lowerExt === 'txt')
+    ) {
+      return res
+        .status(200)
+        .header('Content-Type', lowerExt === 'md' ? 'text/markdown' : 'text/plain')
+        .send(data.toString());
     }
 
     // Image conversion
@@ -58,7 +67,7 @@ router.get('/update/:id.:ext', async (req, res) => {
         const output = await sharp(data).toFormat(outputType).toBuffer();
         return res.status(200).header('Content-Type', `image/${outputType}`).send(output);
       } catch (err) {
-        console.log(err);
+        console.error(err);
         return res.status(415).json({ error: 'Image conversion failed' });
       }
     } else if (!fragment.type.startsWith('image/') && imageExts.includes(lowerExt)) {
@@ -77,6 +86,7 @@ router.get('/update/:id.:ext', async (req, res) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 // GET /v1/fragments/:id
 router.get('/:id', async (req, res) => {
   try {
