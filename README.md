@@ -118,7 +118,23 @@ This project provides a robust and scalable API for managing data fragments. It 
 
 ## 📸 Screenshots
 
+High Level System Architecture diagram
 ![Alt text](screenshots/high_level.png)
+App Deployed Link
+![Alt text](screenshots/test_api.png)
+Load Balancer
+![Alt text](screenshots/load_balancer.png)
+Elastic Container Service
+Cluster
+![Alt text](screenshots/ecs_cluster.png)
+Task Definition
+![Alt text](screenshots/ecs_task.png)
+Service
+![Alt text](screenshots/ecs_service.png)
+AWS S3
+![Alt text](screenshots/s3.png)
+Dynamo DB
+![Alt text](screenshots/dynamodb.png)
 
 ## 🤝 Contributing
 
