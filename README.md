@@ -61,8 +61,8 @@ This project provides a robust and scalable API for managing data fragments. It 
 1.  Clone the repository:
 
     ```bash
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone https://github.com/sukhad123/fragments.git
+    cd fragments
     ```
 
 2.  Install dependencies:
