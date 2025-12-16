@@ -85,13 +85,12 @@ This project provides a robust and scalable API for managing data fragments. It 
     ```
 
 2.  The server will start on port 8080 (or the port specified in the `PORT` environment variable).
-   
-  Build and Run on Docker
+
+2.  The server will start on port 8080 (or the port specified in the `PORT` environment variable).
+3.  1. Build and Run on Docker
     ```bash
     docker compose up
     ```
-
-2.  The server will start on port 8080 (or the port specified in the `PORT` environment variable).
 
 ## 💻 Project Structure
 
